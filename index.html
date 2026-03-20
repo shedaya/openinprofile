@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Open in Profile — Chrome Extension</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Fraunces:wght@700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #1e3a5f; --blue: #2d6a9f; --green: #16a34a;
+      --text: #1e293b; --muted: #64748b; --border: #e2e8f0; --bg: #f8fafc;
+    }
+
+    body {
+      font-family: 'DM Sans', -apple-system, sans-serif;
+      background: var(--bg); color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(160deg, var(--navy) 0%, #1a4a7a 55%, var(--blue) 100%);
+      padding: 64px 24px 56px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      bottom: 0; left: 0; right: 0; height: 40px;
+      background: var(--bg);
+      clip-path: ellipse(55% 100% at 50% 100%);
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 20px; padding: 5px 14px; font-size: 13px;
+      color: rgba(255,255,255,0.85); margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 44px; font-weight: 700; color: #fff;
+      margin-bottom: 16px; line-height: 1.15;
+    }
+    .hero p {
+      font-size: 18px; color: rgba(255,255,255,0.75);
+      max-width: 500px; margin: 0 auto 28px; line-height: 1.65;
+    }
+    .hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; position: relative; }
+    .btn-primary {
+      background: #fff; color: var(--navy);
+      text-decoration: none; border-radius: 10px;
+      padding: 13px 24px; font-size: 15px; font-weight: 600;
+      transition: transform 0.15s, box-shadow 0.15s;
+      display: inline-flex; align-items: center; gap: 7px;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+    .btn-secondary {
+      background: rgba(255,255,255,0.12); color: #fff;
+      border: 1px solid rgba(255,255,255,0.3);
+      text-decoration: none; border-radius: 10px;
+      padding: 13px 24px; font-size: 15px; font-weight: 500;
+      transition: background 0.15s;
+      display: inline-flex; align-items: center; gap: 7px;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.2); }
+
+    /* Content */
+    .content { max-width: 720px; margin: 0 auto; padding: 48px 24px 80px; }
+
+    /* Features */
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 48px; }
+    .feature {
+      background: #fff; border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px;
+    }
+    .feature-icon { font-size: 24px; margin-bottom: 10px; }
+    .feature h3 { font-size: 14px; font-weight: 600; margin-bottom: 5px; }
+    .feature p { font-size: 13px; color: var(--muted); line-height: 1.55; }
+
+    /* Section */
+    .section { margin-bottom: 48px; }
+    .section h2 {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 26px; font-weight: 700; margin-bottom: 16px;
+      color: var(--navy);
+    }
+    .section p { font-size: 15px; color: var(--muted); margin-bottom: 12px; }
+    .section p:last-child { margin-bottom: 0; }
+
+    /* Privacy */
+    .privacy-box {
+      background: #fff; border: 1px solid var(--border);
+      border-radius: 14px; padding: 28px;
+    }
+    .privacy-box h3 { font-size: 16px; font-weight: 600; margin-bottom: 12px; color: var(--text); }
+    .privacy-box p { font-size: 14px; color: var(--muted); margin-bottom: 10px; line-height: 1.65; }
+    .privacy-box p:last-child { margin-bottom: 0; }
+
+    code {
+      background: #f1f5f9; border: 1px solid var(--border);
+      border-radius: 4px; padding: 1px 7px;
+      font-family: 'Menlo','Consolas',monospace; font-size: 12.5px;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px;
+      text-align: center;
+      font-size: 13px; color: var(--muted);
+    }
+    footer a { color: var(--blue); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="badge">⇄ Chrome Extension</div>
+  <h1>Open in Profile</h1>
+  <p>Send any tab or link to a different Chrome profile — right-click or click the toolbar icon. No copy-pasting URLs.</p>
+  <div class="hero-btns">
+    <a class="btn-primary" href="https://github.com/shedaya/openinprofile/releases/latest">⬇ Download Companion App</a>
+    <a class="btn-secondary" href="https://github.com/shedaya/openinprofile">View on GitHub</a>
+  </div>
+</div>
+
+<div class="content">
+
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon">🖱️</div>
+      <h3>Right-click any page</h3>
+      <p>Context menu appears on any page or link for every profile you've configured.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">⇄</div>
+      <h3>Toolbar button</h3>
+      <p>Click the icon to send the current tab to another profile in one click.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🔍</div>
+      <h3>Auto-detect profiles</h3>
+      <p>Reads your Chrome profiles automatically — no folder names to look up.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">⚙️</div>
+      <h3>Configure once</h3>
+      <p>Settings are shared across all profiles. Rename a profile once and every window sees it.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>How to install</h2>
+    <p><strong>1.</strong> Download <code>open-in-profile.zip</code> from the <a href="https://github.com/shedaya/openinprofile/releases/latest" style="color:var(--blue)">latest release</a> and unzip it.</p>
+    <p><strong>2.</strong> In Chrome, go to <code>chrome://extensions</code> → enable <strong>Developer mode</strong> → <strong>Load unpacked</strong> → select the <code>extension</code> folder.</p>
+    <p><strong>3.</strong> Move the <code>native-host</code> folder somewhere permanent (e.g. <code>C:\OpenInProfile\</code>) and double-click <code>install.bat</code>. Paste your Extension ID when asked.</p>
+    <p><strong>4.</strong> Click the ⇄ toolbar icon → <strong>Manage profiles</strong> → <strong>Auto-detect my profiles</strong> → Save.</p>
+  </div>
+
+  <div class="section" id="privacy">
+    <h2>Privacy Policy</h2>
+    <div class="privacy-box">
+      <h3>Open in Profile — Privacy Policy</h3>
+      <p>Open in Profile does not collect, transmit, or store any personal data of any kind.</p>
+      <p>The extension communicates exclusively with a locally installed companion application on your own computer. No data is sent to any external server, third party, or remote service.</p>
+      <p>Your profile names and preferences are stored in a single local file at <code>%APPDATA%\OpenInProfile\profiles.json</code> on your PC. This file never leaves your computer.</p>
+      <p>The extension requests the following Chrome permissions:</p>
+      <p>
+        <strong>contextMenus</strong> — to add the right-click menu items.<br>
+        <strong>tabs</strong> — to read the current tab's URL when you click the toolbar button.<br>
+        <strong>nativeMessaging</strong> — to communicate with the local companion app.<br>
+        <strong>scripting</strong> — to show error messages if the companion app isn't installed.
+      </p>
+      <p>No analytics. No tracking. No ads. No accounts. No data of any kind leaves your device.</p>
+      <p style="margin-top:16px; font-size:13px; color:#94a3b8">Last updated: March 2026</p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>Open in Profile is open source — <a href="https://github.com/shedaya/openinprofile">github.com/shedaya/openinprofile</a> · MIT License</p>
+</footer>
+
+</body>
+</html>
