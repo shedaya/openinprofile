@@ -1,0 +1,135 @@
+const COLORS = ["#1e3a5f","#2d6a9f","#0f766e","#7c3aed","#b45309","#be185d","#065f46","#1d4ed8"];
+
+let profiles = [];
+
+function msg(type, extra = {}) {
+  return new Promise(resolve =>
+    chrome.runtime.sendMessage({ type, ...extra }, resolve)
+  );
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render() {
+  const list = document.getElementById("profileList");
+  list.innerHTML = "";
+
+  profiles.forEach((p, i) => {
+    const card = document.createElement("div");
+    card.className = "pCard" + (p._new ? " new-profile" : "");
+    card.innerHTML = `
+      <div class="avatar" style="background:${COLORS[i % COLORS.length]}" id="av${i}">
+        ${(p.name || "?").charAt(0).toUpperCase()}
+      </div>
+      <div class="pCard-fields">
+        <div class="field-wrap">
+          <label>Display Name</label>
+          <input type="text" class="name-input" value="${p.name}" placeholder="e.g. Work" data-i="${i}" />
+        </div>
+        <div class="field-wrap">
+          <label>Profile Directory</label>
+          <input type="text" class="dir-input" value="${p.dir}" placeholder="e.g. Profile 1" data-i="${i}" />
+        </div>
+      </div>
+      <button class="removeBtn" data-i="${i}" title="Remove">×</button>`;
+    list.appendChild(card);
+  });
+
+  // Live-update avatar initial as user types name
+  list.querySelectorAll(".name-input").forEach(input => {
+    input.addEventListener("input", () => {
+      const i = parseInt(input.dataset.i);
+      profiles[i].name = input.value;
+      const av = document.getElementById(`av${i}`);
+      av.textContent = (input.value || "?").charAt(0).toUpperCase();
+    });
+  });
+
+  list.querySelectorAll(".dir-input").forEach(input => {
+    input.addEventListener("input", () => {
+      profiles[parseInt(input.dataset.i)].dir = input.value;
+    });
+  });
+
+  list.querySelectorAll(".removeBtn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      profiles.splice(parseInt(btn.dataset.i), 1);
+      render();
+    });
+  });
+}
+
+// ── Load profiles from native host ───────────────────────────────────────────
+async function loadProfiles() {
+  const resp = await msg("GET_PROFILES");
+  profiles = resp?.profiles || [];
+  render();
+}
+
+// ── Auto-detect ───────────────────────────────────────────────────────────────
+document.getElementById("detectBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("detectBtn");
+  btn.textContent = "Detecting…";
+  btn.disabled = true;
+
+  const resp = await msg("DETECT_PROFILES");
+  btn.textContent = "🔍 Auto-detect my profiles";
+  btn.disabled = false;
+
+  if (!resp?.ok || !resp.detected?.length) {
+    alert("Could not auto-detect profiles. You can add them manually below.");
+    return;
+  }
+
+  // Merge: keep existing custom names, add any new ones not already in list
+  const existing = new Set(profiles.map(p => p.dir));
+  let added = 0;
+  resp.detected.forEach(d => {
+    if (!existing.has(d.dir)) {
+      profiles.push({ name: d.name, dir: d.dir, _new: true });
+      added++;
+    }
+  });
+
+  render();
+
+  const status = document.getElementById("saveStatus");
+  status.textContent = added > 0
+    ? `Found ${added} new profile${added > 1 ? "s" : ""}! Review names below and Save.`
+    : "All profiles already listed.";
+  setTimeout(() => status.textContent = "", 4000);
+});
+
+// ── Add manually ─────────────────────────────────────────────────────────────
+document.getElementById("addBtn").addEventListener("click", () => {
+  profiles.push({ name: "", dir: "", _new: true });
+  render();
+  // Focus the new name input
+  const inputs = document.querySelectorAll(".name-input");
+  inputs[inputs.length - 1]?.focus();
+});
+
+// ── Save ──────────────────────────────────────────────────────────────────────
+document.getElementById("saveBtn").addEventListener("click", async () => {
+  const clean = profiles
+    .map(p => ({ name: p.name.trim(), dir: p.dir.trim() }))
+    .filter(p => p.name && p.dir);
+
+  if (!clean.length) { alert("Add at least one profile first."); return; }
+
+  const resp = await msg("SET_PROFILES", { profiles: clean });
+  const status = document.getElementById("saveStatus");
+
+  if (resp?.ok) {
+    profiles = clean;
+    render();
+    status.textContent = "✓ Saved";
+    setTimeout(() => status.textContent = "", 2500);
+  } else {
+    status.style.color = "#dc2626";
+    status.textContent = "Save failed — is the companion app installed?";
+    setTimeout(() => { status.textContent = ""; status.style.color = ""; }, 4000);
+  }
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadProfiles();

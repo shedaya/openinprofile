@@ -1,0 +1,97 @@
+const HOST = "com.openinprofile.host";
+
+// ── Talk to native host ────────────────────────────────────────────────────────
+function hostMessage(msg) {
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendNativeMessage(HOST, msg, (resp) => {
+      if (chrome.runtime.lastError) reject(chrome.runtime.lastError);
+      else resolve(resp);
+    });
+  });
+}
+
+// ── Build context menus from host config ──────────────────────────────────────
+async function refreshMenus() {
+  chrome.contextMenus.removeAll();
+  try {
+    const resp = await hostMessage({ action: "get_profiles" });
+    const profiles = resp?.profiles || [];
+    profiles.forEach(p => {
+      chrome.contextMenus.create({
+        id: p.dir,
+        title: `Open in ${p.name}`,
+        contexts: ["page", "link", "frame"]
+      });
+    });
+  } catch (e) {
+    // Host not installed yet — menus stay empty, popup will show setup prompt
+  }
+}
+
+// ── Lifecycle ─────────────────────────────────────────────────────────────────
+chrome.runtime.onInstalled.addListener((details) => {
+  refreshMenus();
+  if (details.reason === "install") {
+    chrome.tabs.create({ url: chrome.runtime.getURL("welcome.html") });
+  }
+});
+
+chrome.runtime.onStartup.addListener(refreshMenus);
+
+// ── Open URL in a profile ─────────────────────────────────────────────────────
+async function openInProfile(profileDir, url) {
+  try {
+    await hostMessage({ action: "open_url", profile: profileDir, url });
+  } catch (e) {
+    chrome.tabs.create({ url: chrome.runtime.getURL("welcome.html?error=1") });
+  }
+}
+
+// ── Context menu handler ──────────────────────────────────────────────────────
+chrome.contextMenus.onClicked.addListener((info) => {
+  openInProfile(info.menuItemId, info.linkUrl || info.pageUrl);
+});
+
+// ── Message handler (popup + options) ────────────────────────────────────────
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+
+  if (msg.type === "OPEN_IN_PROFILE") {
+    openInProfile(msg.profile, msg.url);
+    sendResponse({ ok: true });
+    return;
+  }
+
+  if (msg.type === "GET_PROFILES") {
+    hostMessage({ action: "get_profiles" })
+      .then(r => sendResponse({ ok: true, profiles: r.profiles || [] }))
+      .catch(e => sendResponse({ ok: false, error: e.message }));
+    return true;
+  }
+
+  if (msg.type === "SET_PROFILES") {
+    hostMessage({ action: "set_profiles", profiles: msg.profiles })
+      .then(() => { refreshMenus(); sendResponse({ ok: true }); })
+      .catch(e => sendResponse({ ok: false, error: e.message }));
+    return true;
+  }
+
+  if (msg.type === "DETECT_PROFILES") {
+    hostMessage({ action: "detect_profiles" })
+      .then(r => sendResponse({ ok: true, detected: r.detected || [] }))
+      .catch(e => sendResponse({ ok: false, error: e.message }));
+    return true;
+  }
+
+  if (msg.type === "PING") {
+    hostMessage({ action: "ping" })
+      .then(() => sendResponse({ connected: true }))
+      .catch(e => sendResponse({ connected: false, error: e.message }));
+    return true;
+  }
+
+  if (msg.type === "REFRESH_MENUS") {
+    refreshMenus();
+    sendResponse({ ok: true });
+    return;
+  }
+});
