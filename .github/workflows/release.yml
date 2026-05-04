@@ -13,11 +13,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build zip
+      - name: Build native-host zip
         run: zip -r open-in-profile.zip native-host/
+
+      - name: Build extension zip
+        run: |
+          zip extension.zip \
+            manifest.json \
+            background.js \
+            popup.html popup.js \
+            options.html options.js \
+            welcome.html welcome.js \
+            icon16.png icon48.png icon128.png
 
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          files: open-in-profile.zip
+          files: |
+            open-in-profile.zip
+            extension.zip
           generate_release_notes: true
