@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Open in Profile — Settings</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #1e3a5f; --blue: #2d6a9f; --green: #16a34a;
+      --text: #1e293b; --muted: #64748b; --border: #e2e8f0; --bg: #f8fafc;
+    }
+
+    body {
+      font-family: -apple-system, 'Segoe UI', 'DM Sans', sans-serif;
+      background: var(--bg); color: var(--text);
+      font-size: 14px; line-height: 1.5;
+    }
+
+    .topbar {
+      background: var(--navy); color: #fff;
+      padding: 14px 24px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .topbar h1 { font-size: 16px; font-weight: 600; }
+
+    .content { max-width: 560px; margin: 32px auto; padding: 0 24px 80px; }
+
+    .section-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .card {
+      background: #fff; border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px; margin-bottom: 16px;
+    }
+
+    #notification {
+      background: #fef9c3; border: 1px solid #fde047;
+      border-radius: 8px; padding: 10px 14px;
+      font-size: 13px; color: #713f12;
+      margin-bottom: 16px; display: none;
+    }
+
+    .detect-row {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      border: none; border-radius: 8px; padding: 9px 16px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      font-family: inherit; transition: background 0.15s;
+    }
+    .btn-primary { background: var(--navy); color: #fff; }
+    .btn-primary:hover { background: var(--blue); }
+    .btn-primary:disabled { opacity: 0.6; cursor: default; }
+    .btn-save { background: var(--navy); color: #fff; }
+    .btn-save:hover { background: var(--blue); }
+
+    .profile-row {
+      display: flex; gap: 8px; align-items: center; margin-bottom: 8px;
+    }
+    .profile-row input {
+      flex: 1; border: 1px solid var(--border); border-radius: 6px;
+      padding: 7px 10px; font-size: 13px; color: var(--text);
+      font-family: inherit; background: #fff;
+    }
+    .profile-row input:focus { outline: none; border-color: var(--blue); }
+    .profile-row input::placeholder { color: #94a3b8; }
+    .col-label {
+      font-size: 11px; color: var(--muted); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    .remove-btn {
+      background: none; border: none; color: #94a3b8;
+      cursor: pointer; font-size: 16px; padding: 4px 6px; line-height: 1;
+      border-radius: 4px;
+    }
+    .remove-btn:hover { color: #ef4444; background: #fef2f2; }
+
+    .bottom-row {
+      display: flex; align-items: center; gap: 12px; margin-top: 12px;
+    }
+    .add-link {
+      background: none; border: none; color: var(--blue);
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      font-family: inherit; padding: 0;
+    }
+    .add-link:hover { text-decoration: underline; }
+
+    .hint {
+      background: #eff6ff; border-left: 3px solid var(--blue);
+      border-radius: 0 8px 8px 0; padding: 12px 14px;
+      font-size: 12.5px; color: #1e40af; line-height: 1.65;
+      margin-top: 20px;
+    }
+    .hint strong { display: block; margin-bottom: 4px; }
+    code {
+      background: #dbeafe; border-radius: 4px;
+      padding: 1px 6px; font-family: 'Menlo', 'Consolas', monospace;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <span style="font-size:18px">⇄</span>
+  <h1>Open in Profile — Settings</h1>
+</div>
+
+<div class="content">
+
+  <div id="notification"></div>
+
+  <div class="section-label">Your Chrome Profiles</div>
+  <div class="card">
+    <div class="detect-row">
+      <button class="btn btn-primary" id="detectBtn">🔍 Auto-detect my profiles</button>
+      <span id="detectStatus" style="font-size:12px;color:var(--muted)"></span>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:6px;padding:0 0 0 0">
+      <div style="flex:1"><span class="col-label">Display Name</span></div>
+      <div style="flex:1"><span class="col-label">Profile Directory</span></div>
+      <div style="width:30px"></div>
+    </div>
+
+    <div id="profileList"></div>
+
+    <div class="bottom-row">
+      <button class="add-link" id="addBtn">+ Add manually</button>
+      <button class="btn btn-save" id="saveBtn">Save</button>
+    </div>
+  </div>
+
+  <div class="hint">
+    <strong>Finding a Profile Directory name manually:</strong>
+    Open Chrome in that profile → go to <code>chrome://version</code> → look at <em>Profile Path</em>.<br>
+    The last folder segment is the value to use — e.g. <code>Default</code>, <code>Profile 1</code>, <code>Profile 2</code>.
+  </div>
+
+</div>
+
+<script src="options.js"></script>
+</body>
+</html>

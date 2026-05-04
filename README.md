@@ -4,21 +4,21 @@ Send any Chrome tab or link to another Chrome profile — right-click or toolbar
 
 ## Setup
 
-**1. Load the extension**
-- Chrome → Extensions → Manage Extensions → enable **Developer mode**
-- **Load unpacked** → select the `extension` folder
+**1. Install the extension**
+- Install from the [Chrome Web Store](https://chromewebstore.google.com/detail/open-in-profile/lnnalmbekphgipfkdhhbjdnmjnnalggb)
 - A setup guide opens automatically
 
 **2. Install the companion app**
+- Download `open-in-profile.zip` from the [latest release](https://github.com/shedaya/openinprofile/releases/latest) and unzip it
 - Put the `native-host` folder somewhere permanent (e.g. `C:\OpenInProfile\`)
-- Double-click `install.bat`
+- Double-click `install.bat` inside that folder
 - Paste your Extension ID from the setup guide when prompted
 
 **3. Configure profiles**
 - Click the ⇄ toolbar icon → **Manage profiles**
 - Click **Auto-detect my profiles** — done
 
-Install the extension in each Chrome profile (Load unpacked, same folder = same Extension ID). The companion app and profile settings are shared automatically — nothing else to configure.
+The companion app and profile settings are shared across all your Chrome profiles automatically — nothing else to configure.
 
 ## How it works
 
@@ -27,11 +27,11 @@ Chrome extensions can't open URLs in a different profile directly. The companion
 ## Files
 
 ```
-extension/          ← Chrome extension (load unpacked)
 native-host/
-  host.ps1          ← PowerShell companion app
-  host_launcher.bat ← Entry point called by Chrome
-  install.bat       ← One-time installer
+  host.ps1                    ← PowerShell companion app
+  host_launcher.bat           ← Entry point called by Chrome
+  install.bat                 ← One-time installer
+  com.openinprofile.host.json ← Native messaging manifest (written by install.bat)
 ```
 
 ## Privacy
