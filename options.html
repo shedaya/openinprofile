@@ -75,6 +75,18 @@
       text-transform: uppercase; letter-spacing: 0.5px;
     }
 
+    .dir-wrap { flex: 1; display: flex; align-items: center; gap: 4px; }
+    .dir-wrap .dir-in { flex: 1; }
+    .dir-in.locked {
+      background: #f8fafc; color: var(--muted);
+      border-color: #e2e8f0; cursor: default;
+    }
+    .unlock-btn {
+      background: none; border: 1px solid var(--border); border-radius: 5px;
+      color: var(--muted); cursor: pointer; font-size: 12px;
+      padding: 4px 7px; line-height: 1; flex-shrink: 0;
+    }
+    .unlock-btn:hover { color: var(--blue); border-color: var(--blue); background: #eff6ff; }
     .remove-btn {
       background: none; border: none; color: #94a3b8;
       cursor: pointer; font-size: 16px; padding: 4px 6px; line-height: 1;

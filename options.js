@@ -1,4 +1,5 @@
 let profiles = [];
+let lockedDirs = new Set(); // dirs that came from auto-detect and should be locked
 
 function esc(s) {
   return String(s)
@@ -12,11 +13,15 @@ function renderProfiles() {
   const container = document.getElementById("profileList");
   container.innerHTML = "";
   profiles.forEach((p, i) => {
+    const locked = lockedDirs.has(p.dir);
     const row = document.createElement("div");
     row.className = "profile-row";
     row.innerHTML =
       `<input type="text" class="name-in" placeholder="e.g. Work" value="${esc(p.name)}" />` +
-      `<input type="text" class="dir-in"  placeholder="e.g. Default" value="${esc(p.dir)}" />` +
+      `<div class="dir-wrap">` +
+        `<input type="text" class="dir-in${locked ? " locked" : ""}" placeholder="e.g. Default" value="${esc(p.dir)}"${locked ? " readonly" : ""} />` +
+        (locked ? `<button class="unlock-btn" title="Edit directory">✎</button>` : "") +
+      `</div>` +
       `<button class="remove-btn" title="Remove">✕</button>`;
 
     row.querySelector(".name-in").addEventListener("input", (e) => {
@@ -26,9 +31,19 @@ function renderProfiles() {
       profiles[i] = { ...profiles[i], dir: e.target.value };
     });
     row.querySelector(".remove-btn").addEventListener("click", () => {
+      lockedDirs.delete(p.dir);
       profiles.splice(i, 1);
       renderProfiles();
     });
+    if (locked) {
+      row.querySelector(".unlock-btn").addEventListener("click", () => {
+        lockedDirs.delete(p.dir);
+        renderProfiles();
+        // focus the now-unlocked dir input
+        const rows = document.querySelectorAll(".profile-row");
+        rows[i]?.querySelector(".dir-in").focus();
+      });
+    }
 
     container.appendChild(row);
   });
@@ -56,6 +71,7 @@ document.getElementById("detectBtn").addEventListener("click", () => {
 
     if (resp?.detected?.length) {
       profiles = resp.detected.map((d) => ({ name: d.name, dir: d.dir }));
+      lockedDirs = new Set(profiles.map((p) => p.dir));
       renderProfiles();
       status.textContent = `Found ${profiles.length} profile${profiles.length !== 1 ? "s" : ""}`;
     } else {
@@ -78,7 +94,8 @@ document.getElementById("saveBtn").addEventListener("click", () => {
 
   chrome.runtime.sendMessage({ type: "SET_PROFILES", profiles: toSave }, () => {
     btn.disabled = false;
-    showNotice(`Saved ${toSave.length} profile${toSave.length !== 1 ? "s" : ""}.`, "ok");
+    showNotice(`Saved ${toSave.length} profile${toSave.length !== 1 ? "s" : ""}. Settings apply to all your Chrome profiles automatically.`, "ok");
+    lockedDirs = new Set(toSave.map((p) => p.dir));
     profiles = toSave;
     renderProfiles();
   });
@@ -87,5 +104,6 @@ document.getElementById("saveBtn").addEventListener("click", () => {
 // Load on open
 chrome.runtime.sendMessage({ type: "GET_PROFILES" }, (resp) => {
   profiles = resp?.profiles ?? [];
+  lockedDirs = new Set(profiles.map((p) => p.dir));
   renderProfiles();
 });

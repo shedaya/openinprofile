@@ -38,9 +38,18 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       return true;
 
     case "GET_PROFILES":
-      chrome.storage.local.get("profiles").then(({ profiles = [] }) =>
-        sendResponse({ profiles })
-      );
+      // Read local cache; if empty, pull from native host and cache it
+      chrome.storage.local.get("profiles").then(async ({ profiles = [] }) => {
+        if (profiles.length === 0) {
+          const r = await nativeMessage({ action: "get_profiles" });
+          if (r?.status === "ok" && r.profiles?.length) {
+            profiles = r.profiles;
+            await chrome.storage.local.set({ profiles });
+            await rebuildMenus();
+          }
+        }
+        sendResponse({ profiles });
+      });
       return true;
 
     case "DETECT_PROFILES":
