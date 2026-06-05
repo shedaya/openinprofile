@@ -21,19 +21,19 @@ if "!EXT_ID!"=="" (
     pause & exit /b 1
 )
 
-:: Validate: exactly 32 lowercase letters
-:: Check length by testing character at position 31 (0-based) and that there is no 33rd character
+:: Validate: exactly 32 characters (position 31 must exist, position 32 must not)
 set _C31=!EXT_ID:~31,1!
 set _C32=!EXT_ID:~32,1!
-echo !EXT_ID! | findstr /r "^[a-z]*$" >nul
-set _ALPHA_OK=!errorlevel!
 
-set _VALID=1
-if "!_C31!"=="" set _VALID=0
-if "!_C32!" neq "" set _VALID=0
-if !_ALPHA_OK! neq 0 set _VALID=0
-
-if !_VALID! neq 1 (
+if "!_C31!"=="" (
+    echo.
+    echo  WARNING: That doesn't look like a valid Extension ID.
+    echo  It should be 32 lowercase letters, e.g.:
+    echo    abcdefghijklmnopabcdefghijklmnop
+    echo.
+    set /p CONT="  Continue anyway? (y/n): "
+    if /i "!CONT!" neq "y" exit /b 1
+) else if "!_C32!" neq "" (
     echo.
     echo  WARNING: That doesn't look like a valid Extension ID.
     echo  It should be 32 lowercase letters, e.g.:
