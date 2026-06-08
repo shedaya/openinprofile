@@ -5,6 +5,9 @@ if (new URLSearchParams(location.search).get("error") === "1") {
 }
 
 const storeUrl = `https://chromewebstore.google.com/detail/open-in-profile/${chrome.runtime.id}`;
+const reviewUrl = `${storeUrl}/reviews`;
+
+document.getElementById("reviewLinkWelcome").href = reviewUrl;
 
 chrome.runtime.sendMessage({ type: "PING" }, (resp) => {
   if (resp?.connected) {

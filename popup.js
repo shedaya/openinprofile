@@ -4,6 +4,9 @@ document.getElementById("manageBtn").addEventListener("click", () => {
 });
 
 const storeUrl = `https://chromewebstore.google.com/detail/open-in-profile/${chrome.runtime.id}`;
+const reviewUrl = `${storeUrl}/reviews`;
+
+document.getElementById("reviewLinkPopup").href = reviewUrl;
 
 chrome.runtime.sendMessage({ type: "GET_PROFILES" }, (resp) => {
   const profiles = resp?.profiles ?? [];

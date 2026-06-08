@@ -106,6 +106,9 @@ document.getElementById("doneBtn").addEventListener("click", () => {
   chrome.tabs.create({ url: chrome.runtime.getURL("welcome.html") });
 });
 
+const reviewUrl = `https://chromewebstore.google.com/detail/open-in-profile/${chrome.runtime.id}/reviews`;
+document.getElementById("reviewLinkOptions").href = reviewUrl;
+
 // Load on open
 chrome.runtime.sendMessage({ type: "GET_PROFILES" }, (resp) => {
   profiles = resp?.profiles ?? [];

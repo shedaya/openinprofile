@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Open in Profile",
-  "version": "3.1",
+  "version": "3.2",
   "description": "Send any tab or link to another Chrome profile instantly. Right-click or click the toolbar icon.",
   "permissions": ["contextMenus", "tabs", "nativeMessaging", "storage"],
   "host_permissions": ["<all_urls>"],
