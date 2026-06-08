@@ -20,7 +20,12 @@ async function rebuildMenus() {
   }
 }
 
-chrome.runtime.onInstalled.addListener(rebuildMenus);
+chrome.runtime.onInstalled.addListener((details) => {
+  rebuildMenus();
+  if (details.reason === "install") {
+    chrome.tabs.create({ url: chrome.runtime.getURL("welcome.html") });
+  }
+});
 chrome.runtime.onStartup.addListener(rebuildMenus);
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {

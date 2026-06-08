@@ -3,6 +3,8 @@ document.getElementById("manageBtn").addEventListener("click", () => {
   window.close();
 });
 
+const storeUrl = `https://chromewebstore.google.com/detail/open-in-profile/${chrome.runtime.id}`;
+
 chrome.runtime.sendMessage({ type: "GET_PROFILES" }, (resp) => {
   const profiles = resp?.profiles ?? [];
   const list = document.getElementById("list");
@@ -33,5 +35,26 @@ chrome.runtime.sendMessage({ type: "GET_PROFILES" }, (resp) => {
       });
     });
     list.appendChild(btn);
+  }
+
+  // Show "install in other profiles" section if more than one profile
+  if (profiles.length > 1) {
+    document.getElementById("installSection").style.display = "block";
+    const btns = document.getElementById("installBtns");
+    for (const p of profiles) {
+      const btn = document.createElement("button");
+      btn.className = "install-btn";
+      btn.textContent = `⇄ Install in ${p.name}`;
+      btn.addEventListener("click", () => {
+        chrome.runtime.sendMessage({
+          type: "OPEN_URL",
+          profile: p.dir,
+          url: storeUrl,
+        });
+        btn.textContent = `✓ Opened ${p.name}`;
+        btn.disabled = true;
+      });
+      btns.appendChild(btn);
+    }
   }
 });

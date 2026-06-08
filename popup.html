@@ -38,6 +38,25 @@
       border-radius: 6px; padding: 6px 12px;
       font-size: 12px; cursor: pointer; font-family: inherit;
     }
+    .divider {
+      border: none; border-top: 1px solid #e2e8f0; margin: 0;
+    }
+    .install-section {
+      padding: 10px 14px 12px;
+    }
+    .install-section p {
+      font-size: 11px; color: #64748b; margin-bottom: 8px; line-height: 1.5;
+    }
+    .install-btn {
+      display: block; width: 100%; text-align: left;
+      background: none; border: 1px solid #e2e8f0; border-radius: 6px;
+      padding: 7px 10px; margin-bottom: 5px;
+      cursor: pointer; font-size: 12px; color: #1e3a5f;
+      font-family: inherit; transition: background 0.1s;
+    }
+    .install-btn:last-child { margin-bottom: 0; }
+    .install-btn:hover { background: #eff6ff; border-color: #2d6a9f; }
+    .install-btn:disabled { color: #16a34a; border-color: #bbf7d0; background: #f0fdf4; cursor: default; }
   </style>
 </head>
 <body>
@@ -46,6 +65,13 @@
     <button id="manageBtn">Manage profiles</button>
   </div>
   <div id="list" class="list"></div>
+  <div id="installSection" style="display:none">
+    <hr class="divider">
+    <div class="install-section">
+      <p>Install in your other profiles:</p>
+      <div id="installBtns"></div>
+    </div>
+  </div>
   <script src="popup.js"></script>
 </body>
 </html>
