@@ -98,7 +98,12 @@ document.getElementById("saveBtn").addEventListener("click", () => {
     lockedDirs = new Set(toSave.map((p) => p.dir));
     profiles = toSave;
     renderProfiles();
+    document.getElementById("doneRow").style.display = "block";
   });
+});
+
+document.getElementById("doneBtn").addEventListener("click", () => {
+  chrome.tabs.create({ url: chrome.runtime.getURL("welcome.html") });
 });
 
 // Load on open
