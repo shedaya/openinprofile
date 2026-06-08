@@ -13,6 +13,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set executable permissions for Mac scripts
+        run: |
+          chmod +x native-host/install.sh
+          chmod +x native-host/host_launcher.sh
+          chmod +x native-host/host.py
+
       - name: Build native-host zip
         run: zip -r open-in-profile.zip native-host/
 
