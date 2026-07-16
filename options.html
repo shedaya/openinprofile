@@ -104,6 +104,16 @@
     }
     .add-link:hover { text-decoration: underline; }
 
+    .radio-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 0; cursor: pointer;
+    }
+    .radio-row + .radio-row { border-top: 1px solid var(--border); }
+    .radio-row input { margin-top: 3px; flex-shrink: 0; }
+    .radio-row strong { font-weight: 600; }
+    .radio-hint { color: var(--muted); font-size: 12.5px; }
+    .radio-note { color: var(--muted); font-size: 12px; margin-top: 12px; }
+
     .hint {
       background: #eff6ff; border-left: 3px solid var(--blue);
       border-radius: 0 8px 8px 0; padding: 12px 14px;
@@ -148,6 +158,36 @@
       <button class="add-link" id="addBtn">+ Add manually</button>
       <button class="btn btn-save" id="saveBtn">Save</button>
     </div>
+  </div>
+
+  <div class="section-label">When opening in another profile</div>
+  <div class="card">
+    <label class="radio-row">
+      <input type="radio" name="closeAfterMove" value="off" />
+      <span>
+        <strong>Keep the current window open</strong><br />
+        <span class="radio-hint">Open the page in the chosen profile and leave this window as-is (default).</span>
+      </span>
+    </label>
+    <label class="radio-row">
+      <input type="radio" name="closeAfterMove" value="tab" />
+      <span>
+        <strong>Close the original tab</strong><br />
+        <span class="radio-hint">Close the tab you moved. If it was the only tab, the window closes too.</span>
+      </span>
+    </label>
+    <label class="radio-row">
+      <input type="radio" name="closeAfterMove" value="window" />
+      <span>
+        <strong>Close the original window</strong><br />
+        <span class="radio-hint">Close the entire window in the old profile, including any other tabs it held.</span>
+      </span>
+    </label>
+    <p class="radio-note">
+      Applies when you move the current page — via the toolbar popup or right-click
+      <em>“Open in …”</em> on a page. Right-clicking a <em>link</em> never closes anything.
+      This preference is saved for the current Chrome profile.
+    </p>
   </div>
 
   <div id="doneRow" style="display:none; text-align:center; margin-bottom:16px;">

@@ -106,6 +106,21 @@ document.getElementById("doneBtn").addEventListener("click", () => {
   chrome.tabs.create({ url: chrome.runtime.getURL("welcome.html") });
 });
 
+// "Close after move" behavior — stored per Chrome profile in local storage.
+chrome.storage.local.get("closeAfterMove").then(({ closeAfterMove = "off" }) => {
+  const radio = document.querySelector(
+    `input[name="closeAfterMove"][value="${closeAfterMove}"]`
+  );
+  if (radio) radio.checked = true;
+});
+document.querySelectorAll('input[name="closeAfterMove"]').forEach((radio) => {
+  radio.addEventListener("change", (e) => {
+    if (e.target.checked) {
+      chrome.storage.local.set({ closeAfterMove: e.target.value });
+    }
+  });
+});
+
 const reviewUrl = `https://chromewebstore.google.com/detail/open-in-profile/${chrome.runtime.id}/reviews`;
 document.getElementById("reviewLinkOptions").href = reviewUrl;
 

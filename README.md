@@ -20,6 +20,10 @@ Send any Chrome tab or link to another Chrome profile — right-click or toolbar
 
 The companion app and profile settings are shared across all your Chrome profiles automatically — nothing else to configure.
 
+**Optional: close the old window after moving**
+
+By default, moving a page to another profile opens it in the new profile and leaves the current window open. To close the source instead, open **Manage profiles** and, under **When opening in another profile**, choose *Close the original tab* or *Close the original window*. This applies when you move the current page (toolbar popup or right-click **Open in …** on a page) — right-clicking a link never closes anything. The preference is saved per Chrome profile.
+
 ## How it works
 
 Chrome extensions can't open URLs in a different profile directly. The companion app (`host.ps1`) bridges this by receiving a message from the extension and launching `chrome.exe --profile-directory="..." "url"`. Profile settings are stored in `%APPDATA%\OpenInProfile\profiles.json` — one file, shared by all profiles.

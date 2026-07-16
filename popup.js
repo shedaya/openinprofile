@@ -33,6 +33,7 @@ chrome.runtime.sendMessage({ type: "GET_PROFILES" }, (resp) => {
           type: "OPEN_URL",
           profile: p.dir,
           url: tab.url,
+          source: { tabId: tab.id, windowId: tab.windowId },
         });
         window.close();
       });
