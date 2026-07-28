@@ -22,7 +22,7 @@ The companion app and profile settings are shared across all your Chrome profile
 
 **Optional: close the old window after moving**
 
-By default, moving a page to another profile opens it in the new profile and leaves the current window open. To close the source instead, open **Manage profiles** and, under **When opening in another profile**, choose *Close the original tab* or *Close the original window*. This applies when you move the current page (toolbar popup or right-click **Open in …** on a page) — right-clicking a link never closes anything. The preference is saved per Chrome profile.
+By default, moving a page to another profile opens it in the new profile and leaves the current window open. To close the source instead, open **Manage profiles** and, under **When opening in another profile**, choose *Close the original tab* or *Close the original window*. This applies when you move the current page (toolbar popup or right-click **Open in …** on a page) — right-clicking a link never closes anything. Like your profile list, this preference is stored by the companion app and applies to all Chrome profiles on the same computer.
 
 ## How it works
 

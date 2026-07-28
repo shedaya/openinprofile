@@ -5,6 +5,11 @@
 $configDir  = Join-Path $env:APPDATA "OpenInProfile"
 $configFile = Join-Path $configDir "profiles.json"
 
+# Native host protocol version. Bump when the message protocol changes so the
+# extension can prompt users to reinstall an out-of-date companion app.
+# v2: added get_settings/set_settings for cross-profile settings sync.
+$HOST_VERSION = 2
+
 # ── Native messaging I/O ──────────────────────────────────────────────────────
 function Read-NativeMessage {
     $stdin = [System.Console]::OpenStandardInput()
@@ -28,23 +33,38 @@ function Write-NativeMessage($obj) {
 }
 
 # ── Config helpers ────────────────────────────────────────────────────────────
-function Get-Config {
-    if (-not (Test-Path $configFile)) { return @() }
+function Read-Config {
+    # Returns an object with .profiles (array) and .settings (object).
+    # Legacy files stored a bare array of profiles — normalise those.
+    $empty = [PSCustomObject]@{ profiles = @(); settings = [PSCustomObject]@{} }
+    if (-not (Test-Path $configFile)) { return $empty }
     try {
         $raw = Get-Content $configFile -Raw -Encoding UTF8
         $parsed = $raw | ConvertFrom-Json
-        # Normalise to array
-        if ($parsed -is [System.Array]) { return $parsed }
-        if ($parsed.profiles) { return $parsed.profiles }
-        return @()
-    } catch { return @() }
+        if ($parsed -is [System.Array]) {
+            return [PSCustomObject]@{ profiles = $parsed; settings = [PSCustomObject]@{} }
+        }
+        $profiles = if ($parsed.PSObject.Properties['profiles']) { $parsed.profiles } else { @() }
+        $settings = if ($parsed.PSObject.Properties['settings']) { $parsed.settings } else { [PSCustomObject]@{} }
+        return [PSCustomObject]@{ profiles = $profiles; settings = $settings }
+    } catch { return $empty }
 }
 
-function Save-Config($profiles) {
+function Write-Config($config) {
     if (-not (Test-Path $configDir)) {
         New-Item -ItemType Directory -Path $configDir -Force | Out-Null
     }
-    $profiles | ConvertTo-Json -Depth 5 | Set-Content $configFile -Encoding UTF8
+    $config | ConvertTo-Json -Depth 6 | Set-Content $configFile -Encoding UTF8
+}
+
+function Get-Config {
+    return (Read-Config).profiles
+}
+
+function Save-Config($profiles) {
+    $config = Read-Config
+    $config.profiles = $profiles
+    Write-Config $config
 }
 
 # ── Auto-detect Chrome profiles from Local State ──────────────────────────────
@@ -109,7 +129,7 @@ if (-not $msg) {
 switch ($msg.action) {
 
     "ping" {
-        Write-NativeMessage @{ status = "ok" }
+        Write-NativeMessage @{ status = "ok"; version = $HOST_VERSION }
     }
 
     "get_profiles" {
@@ -120,6 +140,22 @@ switch ($msg.action) {
     "set_profiles" {
         try {
             Save-Config $msg.profiles
+            Write-NativeMessage @{ status = "ok" }
+        } catch {
+            Write-NativeMessage @{ status = "error"; message = $_.Exception.Message }
+        }
+    }
+
+    "get_settings" {
+        $settings = (Read-Config).settings
+        Write-NativeMessage @{ status = "ok"; settings = $settings }
+    }
+
+    "set_settings" {
+        try {
+            $config = Read-Config
+            $config.settings = $msg.settings
+            Write-Config $config
             Write-NativeMessage @{ status = "ok" }
         } catch {
             Write-NativeMessage @{ status = "error"; message = $_.Exception.Message }

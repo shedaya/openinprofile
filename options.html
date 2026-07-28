@@ -44,6 +44,16 @@
       margin-bottom: 16px; display: none;
     }
 
+    #hostUpdate {
+      background: #fef3c7; border: 1px solid #fcd34d;
+      border-radius: 8px; padding: 12px 14px;
+      font-size: 13px; color: #78350f; line-height: 1.5;
+      margin-bottom: 16px; display: none;
+    }
+    #hostUpdate strong { display: block; margin-bottom: 4px; }
+    #hostUpdate a { color: #b45309; font-weight: 600; text-decoration: none; }
+    #hostUpdate a:hover { text-decoration: underline; }
+
     .detect-row {
       display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
     }
@@ -139,6 +149,14 @@
 
   <div id="notification"></div>
 
+  <div id="hostUpdate">
+    <strong id="hostUpdateTitle"></strong>
+    <span id="hostUpdateBody"></span>
+    <div style="margin-top:8px;">
+      <a id="hostUpdateLink" href="#">Open setup guide →</a>
+    </div>
+  </div>
+
   <div class="section-label">Your Chrome Profiles</div>
   <div class="card">
     <div class="detect-row">
@@ -186,7 +204,7 @@
     <p class="radio-note">
       Applies when you move the current page — via the toolbar popup or right-click
       <em>“Open in …”</em> on a page. Right-clicking a <em>link</em> never closes anything.
-      This preference is saved for the current Chrome profile.
+      Like your profile list, this applies to all Chrome profiles on this computer.
     </p>
   </div>
 

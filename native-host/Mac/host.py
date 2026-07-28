@@ -4,6 +4,11 @@ import sys, json, struct, os, subprocess
 CONFIG_DIR = os.path.expanduser("~/Library/Application Support/OpenInProfile")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "profiles.json")
 
+# Native host protocol version. Bump when the message protocol changes so the
+# extension can prompt users to reinstall an out-of-date companion app.
+# v2: added get_settings/set_settings for cross-profile settings sync.
+HOST_VERSION = 2
+
 def read_message():
     raw_len = sys.stdin.buffer.read(4)
     if len(raw_len) < 4:
@@ -18,20 +23,40 @@ def send_message(obj):
     sys.stdout.buffer.write(msg)
     sys.stdout.buffer.flush()
 
-def get_profiles():
+def read_config():
+    # Returns a dict {profiles: [...], settings: {...}}.
+    # Legacy files stored a bare list of profiles — normalise those.
     if not os.path.exists(CONFIG_FILE):
-        return []
+        return {}
     try:
         with open(CONFIG_FILE, 'r') as f:
             data = json.load(f)
-        return data if isinstance(data, list) else data.get('profiles', [])
+        if isinstance(data, list):
+            return {'profiles': data}
+        return data if isinstance(data, dict) else {}
     except:
-        return []
+        return {}
 
-def save_profiles(profiles):
+def write_config(config):
     os.makedirs(CONFIG_DIR, exist_ok=True)
     with open(CONFIG_FILE, 'w') as f:
-        json.dump(profiles, f, indent=2)
+        json.dump(config, f, indent=2)
+
+def get_profiles():
+    return read_config().get('profiles', [])
+
+def save_profiles(profiles):
+    config = read_config()
+    config['profiles'] = profiles
+    write_config(config)
+
+def get_settings():
+    return read_config().get('settings', {})
+
+def save_settings(settings):
+    config = read_config()
+    config['settings'] = settings
+    write_config(config)
 
 def detect_profiles():
     local_state_path = os.path.expanduser(
@@ -75,12 +100,20 @@ if not msg:
 action = msg.get('action')
 
 if action == 'ping':
-    send_message({'status': 'ok'})
+    send_message({'status': 'ok', 'version': HOST_VERSION})
 elif action == 'get_profiles':
     send_message({'status': 'ok', 'profiles': get_profiles()})
 elif action == 'set_profiles':
     try:
         save_profiles(msg.get('profiles', []))
+        send_message({'status': 'ok'})
+    except Exception as e:
+        send_message({'status': 'error', 'message': str(e)})
+elif action == 'get_settings':
+    send_message({'status': 'ok', 'settings': get_settings()})
+elif action == 'set_settings':
+    try:
+        save_settings(msg.get('settings', {}))
         send_message({'status': 'ok'})
     except Exception as e:
         send_message({'status': 'error', 'message': str(e)})

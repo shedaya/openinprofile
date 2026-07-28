@@ -8,10 +8,25 @@ function nativeMessage(msg) {
   });
 }
 
+// The "closeAfterMove" setting lives in the native host's shared config so it
+// applies to every Chrome profile on this PC (like the profile list). Read it
+// live from the host; fall back to the local cache if the host is unavailable
+// or too old to know the setting (older companion apps).
+async function getCloseAfterMove() {
+  const r = await nativeMessage({ action: "get_settings" });
+  const v = r?.status === "ok" ? r.settings?.closeAfterMove : undefined;
+  if (v === "tab" || v === "window" || v === "off") {
+    chrome.storage.local.set({ closeAfterMove: v });
+    return v;
+  }
+  const { closeAfterMove = "off" } = await chrome.storage.local.get("closeAfterMove");
+  return closeAfterMove;
+}
+
 // Close the source tab/window after a page was opened in another profile.
 // Controlled by the "closeAfterMove" setting: "off" (default), "tab", "window".
 async function closeSource(tabId, windowId) {
-  const { closeAfterMove = "off" } = await chrome.storage.local.get("closeAfterMove");
+  const closeAfterMove = await getCloseAfterMove();
   try {
     if (closeAfterMove === "tab" && typeof tabId === "number") {
       await chrome.tabs.remove(tabId);
@@ -60,7 +75,11 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   switch (msg.type) {
     case "PING":
       nativeMessage({ action: "ping" }).then((r) =>
-        sendResponse({ connected: r?.status === "ok" })
+        sendResponse({
+          connected: r?.status === "ok",
+          // Older companion apps don't report a version — treat as 1.
+          hostVersion: r?.status === "ok" ? (r.version || 1) : 0,
+        })
       );
       return true;
 
@@ -90,6 +109,30 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         await chrome.storage.local.set({ profiles: msg.profiles });
         await nativeMessage({ action: "set_profiles", profiles: msg.profiles });
         await rebuildMenus();
+        sendResponse({ ok: true });
+      })();
+      return true;
+
+    case "GET_SETTINGS":
+      (async () => {
+        const r = await nativeMessage({ action: "get_settings" });
+        let closeAfterMove = "off";
+        if (r?.status === "ok" && (r.settings?.closeAfterMove === "tab" ||
+            r.settings?.closeAfterMove === "window" || r.settings?.closeAfterMove === "off")) {
+          closeAfterMove = r.settings.closeAfterMove;
+          await chrome.storage.local.set({ closeAfterMove });
+        } else {
+          // Old companion app (no get_settings) — use the local cache.
+          ({ closeAfterMove = "off" } = await chrome.storage.local.get("closeAfterMove"));
+        }
+        sendResponse({ settings: { closeAfterMove } });
+      })();
+      return true;
+
+    case "SET_SETTINGS":
+      (async () => {
+        await chrome.storage.local.set({ closeAfterMove: msg.settings.closeAfterMove });
+        await nativeMessage({ action: "set_settings", settings: msg.settings });
         sendResponse({ ok: true });
       })();
       return true;

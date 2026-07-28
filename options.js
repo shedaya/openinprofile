@@ -106,17 +106,56 @@ document.getElementById("doneBtn").addEventListener("click", () => {
   chrome.tabs.create({ url: chrome.runtime.getURL("welcome.html") });
 });
 
-// "Close after move" behavior — stored per Chrome profile in local storage.
-chrome.storage.local.get("closeAfterMove").then(({ closeAfterMove = "off" }) => {
+// Warn if the installed companion app is missing or too old to support the
+// features on this page (e.g. cross-profile settings sync). Old hosts report
+// no version, so they surface here automatically.
+const REQUIRED_HOST_VERSION = 2;
+chrome.runtime.sendMessage({ type: "PING" }, (resp) => {
+  const version = resp?.hostVersion ?? 0;
+  if (version >= REQUIRED_HOST_VERSION) return;
+
+  const box = document.getElementById("hostUpdate");
+  const title = document.getElementById("hostUpdateTitle");
+  const body = document.getElementById("hostUpdateBody");
+  const link = document.getElementById("hostUpdateLink");
+
+  if (version === 0) {
+    title.textContent = "Companion app not detected";
+    body.textContent =
+      "The companion app is required to open pages in other profiles. Install it to get started.";
+    link.textContent = "Open setup guide →";
+  } else {
+    title.textContent = "Companion app update available";
+    body.textContent =
+      "Your installed companion app is out of date. Reinstall it to sync settings across all your Chrome profiles — otherwise the option below only applies to this profile.";
+    link.textContent = "Update the companion app →";
+  }
+
+  const guideUrl = chrome.runtime.getURL("welcome.html");
+  link.href = guideUrl;
+  link.addEventListener("click", (e) => {
+    e.preventDefault();
+    chrome.tabs.create({ url: guideUrl });
+  });
+  box.style.display = "block";
+});
+
+// "Close after move" behavior — stored in the shared companion-app config so it
+// applies to every Chrome profile on this PC (like the profile list).
+chrome.runtime.sendMessage({ type: "GET_SETTINGS" }, (resp) => {
+  const value = resp?.settings?.closeAfterMove || "off";
   const radio = document.querySelector(
-    `input[name="closeAfterMove"][value="${closeAfterMove}"]`
+    `input[name="closeAfterMove"][value="${value}"]`
   );
   if (radio) radio.checked = true;
 });
 document.querySelectorAll('input[name="closeAfterMove"]').forEach((radio) => {
   radio.addEventListener("change", (e) => {
     if (e.target.checked) {
-      chrome.storage.local.set({ closeAfterMove: e.target.value });
+      chrome.runtime.sendMessage({
+        type: "SET_SETTINGS",
+        settings: { closeAfterMove: e.target.value },
+      });
     }
   });
 });
