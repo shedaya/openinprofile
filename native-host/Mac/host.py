@@ -88,7 +88,16 @@ def open_url(profile, url):
     chrome = find_chrome()
     if not chrome:
         return False
-    subprocess.Popen([chrome, f'--profile-directory={profile}', url])
+    # Fully detach Chrome and silence its stdio. This host's own stdout IS the
+    # native-messaging pipe back to Chrome; a child that inherited it could
+    # corrupt the stream and hold the pipe open after we exit.
+    subprocess.Popen(
+        [chrome, f'--profile-directory={profile}', url],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
     return True
 
 msg = read_message()

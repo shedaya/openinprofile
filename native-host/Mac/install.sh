@@ -12,6 +12,21 @@ echo "  You'll need your Extension ID from Chrome."
 echo "  (The welcome page inside the extension shows it.)"
 echo ""
 
+# The host runs on Apple's /usr/bin/python3, which is only a stub until the
+# Command Line Tools are installed. Chrome launches native hosts with a minimal
+# PATH, so test python3 exactly the way it will be resolved at runtime.
+if ! PATH=/usr/bin:/bin:/usr/sbin:/sbin python3 -c 'import sys' >/dev/null 2>&1; then
+    echo "  ERROR: Python 3 isn't available on this Mac yet."
+    echo ""
+    echo "  The companion app needs Apple's Command Line Tools (which"
+    echo "  include Python 3). Install them by running this in Terminal:"
+    echo ""
+    echo "      xcode-select --install"
+    echo ""
+    echo "  Follow the prompt, then re-run this installer."
+    exit 1
+fi
+
 read -p "  Paste Extension ID and press Enter: " EXT_ID
 
 if [ -z "$EXT_ID" ]; then
@@ -40,6 +55,10 @@ MANIFEST="$MANIFEST_DIR/com.openinprofile.host.json"
 
 echo ""
 echo "  Setting permissions..."
+# Files downloaded from the web carry the com.apple.quarantine flag, and
+# Gatekeeper can silently refuse to run a quarantined host_launcher.sh when
+# Chrome spawns it. Clear it (the Mac equivalent of Windows "Unblock").
+xattr -dr com.apple.quarantine "$INSTALL_DIR" 2>/dev/null || true
 chmod +x "$LAUNCHER"
 chmod +x "$INSTALL_DIR/host.py"
 
