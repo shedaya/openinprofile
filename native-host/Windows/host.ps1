@@ -2,8 +2,9 @@
 # Central config lives at %APPDATA%\OpenInProfile\profiles.json
 # Shared by all Chrome profiles on this PC.
 
-$configDir  = Join-Path $env:APPDATA "OpenInProfile"
-$configFile = Join-Path $configDir "profiles.json"
+$configDir    = Join-Path $env:APPDATA "OpenInProfile"
+$configFile   = Join-Path $configDir "profiles.json"
+$settingsFile = Join-Path $configDir "settings.json"
 
 # Native host protocol version. Bump when the message protocol changes so the
 # extension can prompt users to reinstall an out-of-date companion app.
@@ -33,38 +34,42 @@ function Write-NativeMessage($obj) {
 }
 
 # ── Config helpers ────────────────────────────────────────────────────────────
-function Read-Config {
-    # Returns an object with .profiles (array) and .settings (object).
-    # Legacy files stored a bare array of profiles — normalise those.
-    $empty = [PSCustomObject]@{ profiles = @(); settings = [PSCustomObject]@{} }
-    if (-not (Test-Path $configFile)) { return $empty }
+# Profiles live in profiles.json as a bare array (unchanged since v1). Settings
+# live in a SEPARATE settings.json in the same shared folder, so they sync
+# across profiles too without ever rewriting — and risking — the profile list.
+function Get-Config {
+    if (-not (Test-Path $configFile)) { return @() }
     try {
         $raw = Get-Content $configFile -Raw -Encoding UTF8
         $parsed = $raw | ConvertFrom-Json
-        if ($parsed -is [System.Array]) {
-            return [PSCustomObject]@{ profiles = $parsed; settings = [PSCustomObject]@{} }
-        }
-        $profiles = if ($parsed.PSObject.Properties['profiles']) { $parsed.profiles } else { @() }
-        $settings = if ($parsed.PSObject.Properties['settings']) { $parsed.settings } else { [PSCustomObject]@{} }
-        return [PSCustomObject]@{ profiles = $profiles; settings = $settings }
-    } catch { return $empty }
-}
-
-function Write-Config($config) {
-    if (-not (Test-Path $configDir)) {
-        New-Item -ItemType Directory -Path $configDir -Force | Out-Null
-    }
-    $config | ConvertTo-Json -Depth 6 | Set-Content $configFile -Encoding UTF8
-}
-
-function Get-Config {
-    return (Read-Config).profiles
+        # Normalise to array
+        if ($parsed -is [System.Array]) { return $parsed }
+        if ($parsed.profiles) { return $parsed.profiles }
+        return @()
+    } catch { return @() }
 }
 
 function Save-Config($profiles) {
-    $config = Read-Config
-    $config.profiles = $profiles
-    Write-Config $config
+    if (-not (Test-Path $configDir)) {
+        New-Item -ItemType Directory -Path $configDir -Force | Out-Null
+    }
+    $profiles | ConvertTo-Json -Depth 5 | Set-Content $configFile -Encoding UTF8
+}
+
+function Get-Settings {
+    if (-not (Test-Path $settingsFile)) { return [PSCustomObject]@{} }
+    try {
+        $parsed = Get-Content $settingsFile -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ($parsed) { return $parsed }
+        return [PSCustomObject]@{}
+    } catch { return [PSCustomObject]@{} }
+}
+
+function Save-Settings($settings) {
+    if (-not (Test-Path $configDir)) {
+        New-Item -ItemType Directory -Path $configDir -Force | Out-Null
+    }
+    $settings | ConvertTo-Json -Depth 5 | Set-Content $settingsFile -Encoding UTF8
 }
 
 # ── Auto-detect Chrome profiles from Local State ──────────────────────────────
@@ -147,15 +152,12 @@ switch ($msg.action) {
     }
 
     "get_settings" {
-        $settings = (Read-Config).settings
-        Write-NativeMessage @{ status = "ok"; settings = $settings }
+        Write-NativeMessage @{ status = "ok"; settings = (Get-Settings) }
     }
 
     "set_settings" {
         try {
-            $config = Read-Config
-            $config.settings = $msg.settings
-            Write-Config $config
+            Save-Settings $msg.settings
             Write-NativeMessage @{ status = "ok" }
         } catch {
             Write-NativeMessage @{ status = "error"; message = $_.Exception.Message }

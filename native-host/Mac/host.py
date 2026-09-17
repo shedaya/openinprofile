@@ -3,6 +3,7 @@ import sys, json, struct, os, subprocess
 
 CONFIG_DIR = os.path.expanduser("~/Library/Application Support/OpenInProfile")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "profiles.json")
+SETTINGS_FILE = os.path.join(CONFIG_DIR, "settings.json")
 
 # Native host protocol version. Bump when the message protocol changes so the
 # extension can prompt users to reinstall an out-of-date companion app.
@@ -23,40 +24,38 @@ def send_message(obj):
     sys.stdout.buffer.write(msg)
     sys.stdout.buffer.flush()
 
-def read_config():
-    # Returns a dict {profiles: [...], settings: {...}}.
-    # Legacy files stored a bare list of profiles — normalise those.
+# Profiles live in profiles.json as a bare array (unchanged since v1). Settings
+# live in a SEPARATE settings.json in the same shared folder, so they sync
+# across profiles too without ever rewriting — and risking — the profile list.
+def get_profiles():
     if not os.path.exists(CONFIG_FILE):
-        return {}
+        return []
     try:
         with open(CONFIG_FILE, 'r') as f:
             data = json.load(f)
-        if isinstance(data, list):
-            return {'profiles': data}
+        return data if isinstance(data, list) else data.get('profiles', [])
+    except:
+        return []
+
+def save_profiles(profiles):
+    os.makedirs(CONFIG_DIR, exist_ok=True)
+    with open(CONFIG_FILE, 'w') as f:
+        json.dump(profiles, f, indent=2)
+
+def get_settings():
+    if not os.path.exists(SETTINGS_FILE):
+        return {}
+    try:
+        with open(SETTINGS_FILE, 'r') as f:
+            data = json.load(f)
         return data if isinstance(data, dict) else {}
     except:
         return {}
 
-def write_config(config):
-    os.makedirs(CONFIG_DIR, exist_ok=True)
-    with open(CONFIG_FILE, 'w') as f:
-        json.dump(config, f, indent=2)
-
-def get_profiles():
-    return read_config().get('profiles', [])
-
-def save_profiles(profiles):
-    config = read_config()
-    config['profiles'] = profiles
-    write_config(config)
-
-def get_settings():
-    return read_config().get('settings', {})
-
 def save_settings(settings):
-    config = read_config()
-    config['settings'] = settings
-    write_config(config)
+    os.makedirs(CONFIG_DIR, exist_ok=True)
+    with open(SETTINGS_FILE, 'w') as f:
+        json.dump(settings, f, indent=2)
 
 def detect_profiles():
     local_state_path = os.path.expanduser(
