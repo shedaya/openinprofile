@@ -28,7 +28,7 @@ chrome.runtime.sendMessage({ type: "PING" }, (resp) => {
           for (const p of profiles) {
             const btn = document.createElement("button");
             btn.className = "install-btn";
-            btn.textContent = `⇄ Install in ${p.name}`;
+            btn.textContent = `+ Install in ${p.name}`;
             btn.addEventListener("click", () => {
               chrome.runtime.sendMessage({
                 type: "OPEN_URL",
