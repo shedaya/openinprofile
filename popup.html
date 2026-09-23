@@ -42,13 +42,23 @@
       border: none; border-top: 1px solid #e2e8f0; margin: 0;
     }
     .install-section {
-      margin: 8px 10px 10px; padding: 10px 10px 11px;
-      background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+      margin: 4px 10px 8px; padding: 4px 0 0;
     }
-    .install-section p {
-      font-size: 11px; font-weight: 600; text-transform: uppercase;
-      letter-spacing: 0.03em; color: #475569; margin-bottom: 8px; line-height: 1.5;
+    .install-toggle {
+      display: flex; align-items: center; gap: 6px; width: 100%;
+      background: none; border: none; padding: 7px 4px;
+      cursor: pointer; font-size: 12px; font-weight: 500; color: #475569;
+      font-family: inherit;
     }
+    .install-toggle:hover { color: #1e3a5f; }
+    .install-toggle .chevron {
+      display: inline-block; transition: transform 0.15s; font-size: 10px;
+    }
+    .install-toggle[aria-expanded="true"] .chevron { transform: rotate(90deg); }
+    .install-btns {
+      display: none; padding: 6px 4px 2px;
+    }
+    .install-btns.open { display: block; }
     .install-btn {
       display: block; width: 100%; text-align: left;
       background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px;
@@ -70,8 +80,10 @@
   <div id="installSection" style="display:none">
     <hr class="divider">
     <div class="install-section">
-      <p>Not installed in these profiles</p>
-      <div id="installBtns"></div>
+      <button id="installToggle" class="install-toggle" aria-expanded="false">
+        <span class="chevron">▸</span> Install in other profiles
+      </button>
+      <div id="installBtns" class="install-btns"></div>
     </div>
   </div>
   <hr class="divider">

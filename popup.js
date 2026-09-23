@@ -44,7 +44,15 @@ chrome.runtime.sendMessage({ type: "GET_PROFILES" }, (resp) => {
   // Show "install in other profiles" section if more than one profile
   if (profiles.length > 1) {
     document.getElementById("installSection").style.display = "block";
+
+    const toggle = document.getElementById("installToggle");
     const btns = document.getElementById("installBtns");
+    toggle.addEventListener("click", () => {
+      const expanded = toggle.getAttribute("aria-expanded") === "true";
+      toggle.setAttribute("aria-expanded", String(!expanded));
+      btns.classList.toggle("open", !expanded);
+    });
+
     for (const p of profiles) {
       const btn = document.createElement("button");
       btn.className = "install-btn";
