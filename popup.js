@@ -8,6 +8,14 @@ const reviewUrl = `${storeUrl}/reviews`;
 
 document.getElementById("reviewLinkPopup").href = reviewUrl;
 
+function setInstallLabel(btn, prefix, name) {
+  btn.textContent = "";
+  btn.append(`${prefix} `);
+  const b = document.createElement("b");
+  b.textContent = name;
+  btn.append(b);
+}
+
 chrome.runtime.sendMessage({ type: "GET_PROFILES" }, (resp) => {
   const profiles = resp?.profiles ?? [];
   const list = document.getElementById("list");
@@ -44,18 +52,26 @@ chrome.runtime.sendMessage({ type: "GET_PROFILES" }, (resp) => {
   // Show "install in other profiles" section if more than one profile
   if (profiles.length > 1) {
     document.getElementById("installSection").style.display = "block";
+
+    const toggle = document.getElementById("installToggle");
     const btns = document.getElementById("installBtns");
+    toggle.addEventListener("click", () => {
+      const expanded = toggle.getAttribute("aria-expanded") === "true";
+      toggle.setAttribute("aria-expanded", String(!expanded));
+      btns.classList.toggle("open", !expanded);
+    });
+
     for (const p of profiles) {
       const btn = document.createElement("button");
       btn.className = "install-btn";
-      btn.textContent = `⇄ Install in ${p.name}`;
+      setInstallLabel(btn, "Install in", p.name);
       btn.addEventListener("click", () => {
         chrome.runtime.sendMessage({
           type: "OPEN_URL",
           profile: p.dir,
           url: storeUrl,
         });
-        btn.textContent = `✓ Opened ${p.name}`;
+        setInstallLabel(btn, "✓ Opened", p.name);
         btn.disabled = true;
       });
       btns.appendChild(btn);
